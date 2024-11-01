@@ -19,6 +19,8 @@ GLuint shader_program;
 GLuint vbo;
 GLuint vao;
 
+//glm::vec3 camera{0.0f, 1.0f, 1.0f};
+
 glm::vec4 vertex_data[] = {
 	glm::vec4{0.0f, 0.5f, 0.0f, 1.0f},
 	glm::vec4{0.5f, -0.5f, 0.5f, 1.0f},
@@ -266,11 +268,20 @@ int main()
 	rot_x = glm::rotate(rot_x, 0.01f, glm::vec3{1.0, 0.0, 0.0});
 	glm::mat4 rot_z{1.0f};
 	rot_z = glm::rotate(rot_z, 0.01f, glm::vec3{0.0, 0.0, 1.0});
+	glm::mat4 translate{1.0f};
+	translate = glm::translate(translate, glm::vec3(0.0f, 0.0f, -20.0f));
 
+	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
+	glm::mat4 proj{glm::perspective(glm::radians(45.0f),
+			aspect_ratio,
+			0.1f,
+			100.0f
+	)};
+
+		for(int i{}; i < triangle_count; ++i)
+			vertex_data[i] = proj * translate * rot_x * rot_y * rot_z * vertex_data[i];
 	while (!glfwWindowShouldClose(window))
 	{
-		for(int i{}; i < triangle_count; ++i)
-			vertex_data[i] = rot_x * rot_y * rot_z * vertex_data[i];
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
