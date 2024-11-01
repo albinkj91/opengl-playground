@@ -1,7 +1,11 @@
 #version 330
+in vec4 colorOut;
+in vec2 textOut;
+
 out vec4 outputColor;
+uniform sampler2D sampleTex;
 
 void main()
 {
-   outputColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+   outputColor = colorOut * texture(sampleTex, textOut);
 }

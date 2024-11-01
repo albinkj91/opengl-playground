@@ -20,7 +20,7 @@ GLFLAGS += -lGL -lX11 -lpthread -ldl
 GLFWFLAGS += -lglfw -lGL
 
 # Object modules
-OBJECTS =  $(OBJDIR)/main.o $(OBJDIR)/glad.o 
+OBJECTS =  $(OBJDIR)/main.o $(OBJDIR)/glad.o $(OBJDIR)/stb_image.o 
 
 # Main objetice - created with 'make' or 'make main'.
 main: $(OBJECTS) makefile
@@ -32,6 +32,9 @@ $(OBJDIR)/main.o: $(SRC)/main.cc
 
 $(OBJDIR)/glad.o: $(SRC)/glad.c
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/glad.c -o $(OBJDIR)/glad.o
+
+$(OBJDIR)/stb_image.o: $(SRC)/stb_image.cc
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/stb_image.cc -o $(OBJDIR)/stb_image.o
 
 .PHONY: run dir clean zap
 run: main
