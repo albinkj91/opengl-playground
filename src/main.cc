@@ -1,10 +1,11 @@
+#define MAIN
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include "stb_image.h"
-#include "objload.h"
+#include "LittleOBJLoader.h"
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -19,84 +20,7 @@ using namespace std;
 
 GLuint shader_program;
 GLuint vbo;
-GLuint vao;
-
-//obj::Model m{obj::loadModelFromFile("models/cube.obj")};
-glm::vec4 vertex_data[] = {
-	glm::vec4{0.0f, 0.5f, 0.0f, 1.0f},
-	glm::vec4{0.5f, -0.5f, 0.5f, 1.0f},
-	glm::vec4{-0.5f, -0.5f, 0.5f, 1.0f},
-
-	glm::vec4{0.0f, 0.5f, 0.0f, 1.0f},
-	glm::vec4{0.5f, -0.5f, -0.5f, 1.0f},
-	glm::vec4{0.5f, -0.5f, 0.5f, 1.0f},
-
-	glm::vec4{0.0f, 0.5f, 0.0f, 1.0f},
-	glm::vec4{-0.5f, -0.5f, 0.5f, 1.0f},
-	glm::vec4{-0.5f, -0.5f, -0.5f, 1.0f},
-
-	glm::vec4{0.0f, 0.5f, 0.0f, 1.0f},
-	glm::vec4{-0.5f, -0.5f, -0.5f, 1.0f},
-	glm::vec4{0.5f, -0.5f, -0.5f, 1.0f},
-
-	glm::vec4{0.5f, -0.5f, 0.5f, 1.0f},
-	glm::vec4{0.5f, -0.5f, -0.5f, 1.0f},
-	glm::vec4{-0.5f, -0.5f, -0.5f, 1.0f},
-
-	glm::vec4{0.5f, -0.5f, 0.5f, 1.0f},
-	glm::vec4{-0.5f, -0.5f, -0.5f, 1.0f},
-	glm::vec4{-0.5f, -0.5f, 0.5f, 1.0f},
-
-	//colors
-	glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},
-	glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
-	glm::vec4{0.0f, 0.0f, 1.0f, 1.0f},
-
-	glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},
-	glm::vec4{1.0f, 1.0f, 0.0f, 1.0f},
-	glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
-
-	glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},
-	glm::vec4{0.0f, 0.0f, 1.0f, 1.0f},
-	glm::vec4{1.0f, 0.0f, 1.0f, 1.0f},
-
-	glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},
-	glm::vec4{1.0f, 0.0f, 1.0f, 1.0f},
-	glm::vec4{1.0f, 1.0f, 0.0f, 1.0f},
-
-	glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
-	glm::vec4{1.0f, 1.0f, 0.0f, 1.0f},
-	glm::vec4{1.0f, 0.0f, 1.0f, 1.0f},
-
-	glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
-	glm::vec4{1.0f, 0.0f, 1.0f, 1.0f},
-	glm::vec4{0.0f, 0.0f, 1.0f, 1.0f},
-
-	//texture coordinates
-	glm::vec4{0.5f, 1.0f, 0.0f, 0.0f},
-	glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
-	glm::vec4{1.0f, 0.0f, 0.0f, 0.0f},
-
-	glm::vec4{0.5f, 1.0f, 0.0f, 0.0f},
-	glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
-	glm::vec4{1.0f, 0.0f, 0.0f, 0.0f},
-
-	glm::vec4{0.5f, 1.0f, 0.0f, 0.0f},
-	glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
-	glm::vec4{1.0f, 0.0f, 0.0f, 0.0f},
-
-	glm::vec4{0.5f, 1.0f, 0.0f, 0.0f},
-	glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
-	glm::vec4{1.0f, 0.0f, 0.0f, 0.0f},
-
-	glm::vec4{1.0f, 1.0f, 0.0f, 0.0f},
-	glm::vec4{1.0f, 0.0f, 0.0f, 0.0f},
-	glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
-
-	glm::vec4{1.0f, 1.0f, 0.0f, 0.0f},
-	glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
-	glm::vec4{0.0f, 1.0f, 0.0f, 0.0f},
-};
+Model* m;
 
 //glm::vec3 camera{0.0f, 1.0f, 1.0f};
 
@@ -200,7 +124,7 @@ void InitializeVertexBuffer()
 	glGenBuffers(1, &vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(*m), m, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -208,11 +132,9 @@ void init()
 {
 	InitializeProgram();
 	glUseProgram(shader_program);
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
 	InitializeVertexBuffer();
 	glEnable(GL_CULL_FACE);
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	// Create texture reference
 	unsigned int texture{};
@@ -232,20 +154,10 @@ void init()
 void display()
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(shader_program);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "position"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"),
-			4, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "color"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "color"),
-			4, GL_FLOAT, GL_FALSE, 0, (void*)(triangle_count * 4 * sizeof(float)));
-	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "textureCoord"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "textureCoord"),
-			4, GL_FLOAT, GL_FALSE, 0, (void*)(2*triangle_count * 4 * sizeof(float)));
-	glDrawArrays(GL_TRIANGLES, 0, triangle_count);
+	DrawModel(m, shader_program, "position", "normal", NULL);
 }
 
 int main()
@@ -256,23 +168,24 @@ int main()
 		return -1;
 	}
 
-	GLFWwindow* window = glfwCreateWindow(window_width, window_height, "Playground", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(window_width,
+			window_height, "Playground", NULL, NULL);
+
 	glfwSetWindowAspectRatio(window, window_width, window_height);
+
 	if(!window)
 	{
 		glfwTerminate();
 		cerr << "GLFW window creation failed" << endl;
 		return -1;
 	}
+
 	glfwMakeContextCurrent(window);
 	gladLoadGL();
 	init();
+	m = LoadModel("models/sportsCar.obj");
 
-	glm::mat4 rot_y{glm::rotate(glm::mat4{1.0f}, 0.01f, glm::vec3{0.0, 1.0, 0.0})};
-	glm::mat4 rot_x{glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0, 0.0, 0.0})};
-	glm::mat4 rot_z{glm::rotate(glm::mat4{1.0f}, 0.01f, glm::vec3{0.0, 0.0, 1.0})};
-	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, 0.0f, -5.0f))};
-
+	float rot_angle{0.01f};
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f),
 			aspect_ratio,
@@ -280,19 +193,18 @@ int main()
 			100.0f
 	)};
 
-	glm::mat4 mvp_matrix{proj * translate * rot_x * rot_y * rot_z};
-	//for(int i{}; i < triangle_count; ++i)
-	//{
-	//	vertex_data[i] = mvp_matrix * vertex_data[i];
-	//}
-
-	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
-			1, GL_FALSE, glm::value_ptr(mvp_matrix));
-
 	while (!glfwWindowShouldClose(window))
 	{
+		glm::mat4 rot_y{glm::rotate(glm::mat4{1.0f}, rot_angle, glm::vec3{0.0, 1.0, 0.0})};
+		glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -1.0f, -6.5f))};
+
+		glm::mat4 mvp_matrix{proj * translate * rot_y};
+		glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
+				1, GL_FALSE, glm::value_ptr(mvp_matrix));
+
 		display();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		rot_angle += 0.01f;
 	}
 }
