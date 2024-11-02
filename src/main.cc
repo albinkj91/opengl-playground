@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include "stb_image.h"
 #include "objload.h"
 #include <algorithm>
@@ -20,8 +21,7 @@ GLuint shader_program;
 GLuint vbo;
 GLuint vao;
 
-//glm::vec3 camera{0.0f, 1.0f, 1.0f};
-
+//obj::Model m{obj::loadModelFromFile("models/cube.obj")};
 glm::vec4 vertex_data[] = {
 	glm::vec4{0.0f, 0.5f, 0.0f, 1.0f},
 	glm::vec4{0.5f, -0.5f, 0.5f, 1.0f},
@@ -97,6 +97,8 @@ glm::vec4 vertex_data[] = {
 	glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
 	glm::vec4{0.0f, 1.0f, 0.0f, 0.0f},
 };
+
+//glm::vec3 camera{0.0f, 1.0f, 1.0f};
 
 string load_shader(string const& filename)
 {
@@ -193,7 +195,6 @@ void InitializeProgram()
 	for_each(shaderList.begin(), shaderList.end(), glDeleteShader);
 }
 
-
 void InitializeVertexBuffer()
 {
 	glGenBuffers(1, &vbo);
@@ -206,6 +207,7 @@ void InitializeVertexBuffer()
 void init()
 {
 	InitializeProgram();
+	glUseProgram(shader_program);
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	InitializeVertexBuffer();
@@ -225,9 +227,6 @@ void init()
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	stbi_image_free(data);
-
-	// Load object
-	obj::Model m{obj::loadModelFromFile("models/cube.obj")};
 }
 
 void display()
@@ -269,14 +268,10 @@ int main()
 	gladLoadGL();
 	init();
 
-	glm::mat4 rot_y{1.0f};
-	rot_y = glm::rotate(rot_y, 0.01f, glm::vec3{0.0, 1.0, 0.0});
-	glm::mat4 rot_x{1.0f};
-	rot_x = glm::rotate(rot_x, glm::radians(90.0f), glm::vec3{1.0, 0.0, 0.0});
-	glm::mat4 rot_z{1.0f};
-	rot_z = glm::rotate(rot_z, 0.01f, glm::vec3{0.0, 0.0, 1.0});
-	glm::mat4 translate{1.0f};
-	translate = glm::translate(translate, glm::vec3(0.0f, 0.0f, -3.0f));
+	glm::mat4 rot_y{glm::rotate(glm::mat4{1.0f}, 0.01f, glm::vec3{0.0, 1.0, 0.0})};
+	glm::mat4 rot_x{glm::rotate(glm::mat4{1.0f}, glm::radians(90.0f), glm::vec3{1.0, 0.0, 0.0})};
+	glm::mat4 rot_z{glm::rotate(glm::mat4{1.0f}, 0.01f, glm::vec3{0.0, 0.0, 1.0})};
+	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, 0.0f, -5.0f))};
 
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f),
@@ -285,14 +280,17 @@ int main()
 			100.0f
 	)};
 
-		for(int i{}; i < triangle_count; ++i)
-			vertex_data[i] = proj * translate * rot_x * rot_y * rot_z * vertex_data[i];
+	glm::mat4 mvp_matrix{proj * translate * rot_x * rot_y * rot_z};
+	//for(int i{}; i < triangle_count; ++i)
+	//{
+	//	vertex_data[i] = mvp_matrix * vertex_data[i];
+	//}
+
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
+			1, GL_FALSE, glm::value_ptr(mvp_matrix));
+
 	while (!glfwWindowShouldClose(window))
 	{
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		display();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
