@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include "stb_image.h"
+#include "objload.h"
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -217,13 +218,16 @@ void init()
 
 	// Load image
 	int width{}, height{}, nrChannels{};
-	unsigned char *data = stbi_load("/home/albin/dev/cpp/opengl-playground/assets/gripen.jpg", &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load("assets/gripen.jpg", &width, &height, &nrChannels, 0);
 
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	stbi_image_free(data);
+
+	// Load object
+	obj::Model m{obj::loadModelFromFile("models/cube.obj")};
 }
 
 void display()
@@ -234,11 +238,14 @@ void display()
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "position"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"), 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"),
+			4, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "color"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "color"), 4, GL_FLOAT, GL_FALSE, 0, (void*)(triangle_count * 4 * sizeof(float)));
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "color"),
+			4, GL_FLOAT, GL_FALSE, 0, (void*)(triangle_count * 4 * sizeof(float)));
 	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "textureCoord"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "textureCoord"), 4, GL_FLOAT, GL_FALSE, 0, (void*)(2*triangle_count * 4 * sizeof(float)));
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "textureCoord"),
+			4, GL_FLOAT, GL_FALSE, 0, (void*)(2*triangle_count * 4 * sizeof(float)));
 	glDrawArrays(GL_TRIANGLES, 0, triangle_count);
 }
 
@@ -265,11 +272,11 @@ int main()
 	glm::mat4 rot_y{1.0f};
 	rot_y = glm::rotate(rot_y, 0.01f, glm::vec3{0.0, 1.0, 0.0});
 	glm::mat4 rot_x{1.0f};
-	rot_x = glm::rotate(rot_x, 0.01f, glm::vec3{1.0, 0.0, 0.0});
+	rot_x = glm::rotate(rot_x, glm::radians(90.0f), glm::vec3{1.0, 0.0, 0.0});
 	glm::mat4 rot_z{1.0f};
 	rot_z = glm::rotate(rot_z, 0.01f, glm::vec3{0.0, 0.0, 1.0});
 	glm::mat4 translate{1.0f};
-	translate = glm::translate(translate, glm::vec3(0.0f, 0.0f, -20.0f));
+	translate = glm::translate(translate, glm::vec3(0.0f, 0.0f, -3.0f));
 
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f),
